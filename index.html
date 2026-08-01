@@ -575,6 +575,35 @@ input[type=color]:disabled,input:disabled,select:disabled{
           <option value="technical">Technical / Basing (texture, mediums, effects)</option>
         </select>
       </div>
+      <div>
+        <label>Color category (optional)</label>
+        <select id="fCategory">
+          <option value="">Auto (sort by this paint's color)</option>
+          <optgroup label="Color">
+            <option value="Red">Red</option>
+            <option value="Orange">Orange</option>
+            <option value="Brown">Brown</option>
+            <option value="Yellow">Yellow</option>
+            <option value="Green">Green</option>
+            <option value="Teal / Cyan">Teal / Cyan</option>
+            <option value="Blue">Blue</option>
+            <option value="Purple">Purple</option>
+            <option value="Pink / Magenta">Pink / Magenta</option>
+            <option value="White / Cream">White / Cream</option>
+            <option value="Grey">Grey</option>
+            <option value="Black">Black</option>
+          </optgroup>
+          <optgroup label="Type">
+            <option value="Flesh / Skin">Flesh / Skin</option>
+            <option value="Bone">Bone</option>
+            <option value="Wood">Wood</option>
+            <option value="Leather">Leather</option>
+          </optgroup>
+          <option value="__other__">Other…</option>
+        </select>
+        <input id="fCategoryOther" type="text" list="categoryList" placeholder="Name your own category" style="display:none;margin-top:6px;" />
+        <datalist id="categoryList"></datalist>
+      </div>
       <div class="full">
         <label>Notes (optional)</label>
         <input id="fNotes" type="text" placeholder="e.g. main metal tone for Chaos Dwarf trim" />
@@ -796,15 +825,29 @@ function lookupVallejo(raw){
 function uid(){ return 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 
 /* ---------- Color family classification (for "group by color") ---------- */
-const FAMILY_ORDER = ['Metallic','Wash','Technical','Red','Orange','Brown','Yellow','Green','Teal / Cyan','Blue','Purple','Pink / Magenta','White / Cream','Grey','Black'];
+const BUILTIN_CATEGORIES = ['Red','Orange','Brown','Yellow','Green','Teal / Cyan','Blue','Purple','Pink / Magenta','White / Cream','Grey','Black','Flesh / Skin','Bone','Wood','Leather'];
+const FAMILY_ORDER = ['Metallic','Wash','Technical','Flesh / Skin','Bone','Wood','Leather','Red','Orange','Brown','Yellow','Green','Teal / Cyan','Blue','Purple','Pink / Magenta','White / Cream','Grey','Black'];
 const FAMILY_DOT = {
   'Metallic':'linear-gradient(135deg, #efe9d8 0%, #8a8a8a 35%, #c9a227 65%, #4a4030 100%)',
   'Wash':'linear-gradient(135deg, #6b5a3f 0%, #3a2a1c 60%, #1f160f 100%)',
   'Technical':'linear-gradient(135deg, #a89c87 0%, #8a7d68 45%, #5c5346 75%, #3a342a 100%)',
+  'Flesh / Skin':'#d9a57c','Bone':'#d8c9a3','Wood':'#8b5a2b','Leather':'#6f4423',
   'Red':'#b0453f','Orange':'#c97a35','Brown':'#7a5230','Yellow':'#c9a227','Green':'#4f7a3a',
   'Teal / Cyan':'#2f8a82','Blue':'#3a5f9e','Purple':'#6a4a9e','Pink / Magenta':'#b1508a',
   'White / Cream':'#e8e2d4','Grey':'#8a8a8a','Black':'#232019'
 };
+
+// Deterministic fallback dot color for user-defined custom categories
+// (e.g. "Plasma") that aren't in FAMILY_DOT above.
+function hashColor(str){
+  let hash = 0;
+  for(let i=0;i<str.length;i++){ hash = str.charCodeAt(i) + ((hash << 5) - hash); }
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 45%, 45%)`;
+}
+function dotColorFor(groupName){
+  return FAMILY_DOT[groupName] || hashColor(groupName);
+}
 
 function hexToHSL(hex){
   let h = (hex || '#888888').replace('#','');
@@ -1071,6 +1114,38 @@ function populateBrandFilter(){
   dl.innerHTML = brands.map(b=>`<option value="${escapeHtml(b)}"></option>`).join('');
 }
 
+function getCustomCategories(){
+  return [...new Set(
+    paints
+      .map(p=>p.category)
+      .filter(c=>c && !BUILTIN_CATEGORIES.includes(c))
+  )].sort((a,b)=>a.localeCompare(b));
+}
+
+function populateCategoryDropdown(){
+  const sel = document.getElementById('fCategory');
+  const current = sel.value;
+  const custom = getCustomCategories();
+
+  // remove any previously-injected custom <option>s (marked with data-custom)
+  sel.querySelectorAll('option[data-custom]').forEach(o=>o.remove());
+
+  const otherOption = sel.querySelector('option[value="__other__"]');
+  custom.forEach(cat=>{
+    const opt = document.createElement('option');
+    opt.value = cat;
+    opt.textContent = cat;
+    opt.setAttribute('data-custom', '1');
+    sel.insertBefore(opt, otherOption);
+  });
+
+  // keep the current selection if it still exists as an option
+  if([...sel.options].some(o=>o.value === current)) sel.value = current;
+
+  const dl = document.getElementById('categoryList');
+  dl.innerHTML = custom.map(c=>`<option value="${escapeHtml(c)}"></option>`).join('');
+}
+
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -1086,6 +1161,7 @@ let groupMode = 'brand';
 
 function render(){
   populateBrandFilter();
+  populateCategoryDropdown();
   updateStats();
 
   const {q, brand, status} = getFilters();
@@ -1093,7 +1169,7 @@ function render(){
     if(brand && p.brand !== brand) return false;
     if(status && p.status !== status) return false;
     if(q){
-      const hay = (p.name+' '+p.brand+' '+p.line+' '+(p.partNo||'')+' '+(p.notes||'')+' '+(p.finish && p.finish!=='standard' ? p.finish : '')).toLowerCase();
+      const hay = (p.name+' '+p.brand+' '+p.line+' '+(p.partNo||'')+' '+(p.notes||'')+' '+(p.finish && p.finish!=='standard' ? p.finish : '')+' '+(p.category||'')).toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
@@ -1115,13 +1191,18 @@ function render(){
   const groups = {};
   filtered.forEach(p=>{
     const key = groupMode === 'color'
-      ? (p.finish && p.finish !== 'standard' ? p.finish[0].toUpperCase() + p.finish.slice(1) : colorFamily(p.color))
+      ? (p.category ? p.category
+         : p.finish && p.finish !== 'standard' ? p.finish[0].toUpperCase() + p.finish.slice(1)
+         : colorFamily(p.color))
       : p.brand;
     (groups[key] = groups[key] || []).push(p);
   });
 
   const groupNames = groupMode === 'color'
-    ? FAMILY_ORDER.filter(f=>groups[f])
+    ? [
+        ...FAMILY_ORDER.filter(f=>groups[f]),
+        ...Object.keys(groups).filter(k=>!FAMILY_ORDER.includes(k)).sort((a,b)=>a.localeCompare(b))
+      ]
     : Object.keys(groups).sort((a,b)=>a.localeCompare(b));
 
   container.innerHTML = groupNames.map(groupName=>{
@@ -1136,7 +1217,7 @@ function render(){
         <div class="pot-info">
           <div class="pot-name">${finishMarkHTML(p.finish)}${escapeHtml(p.name)}</div>
           <div class="pot-line">${
-            (groupMode === 'color' ? [p.brand] : []).concat([p.partNo, p.line]).filter(Boolean).map(escapeHtml).join(' · ') || '—'
+            (groupMode === 'color' ? [p.brand] : []).concat([p.partNo, p.line], (groupMode !== 'color' && p.category) ? [p.category] : []).filter(Boolean).map(escapeHtml).join(' · ') || '—'
           }</div>
           ${p.notes ? `<div class="pot-notes">${escapeHtml(p.notes)}</div>` : ''}
         </div>
@@ -1149,7 +1230,7 @@ function render(){
     `).join('');
 
     const dot = groupMode === 'color'
-      ? `<span class="family-dot" style="background:${FAMILY_DOT[groupName] || '#8a8a8a'}"></span>`
+      ? `<span class="family-dot" style="background:${dotColorFor(groupName)}"></span>`
       : '';
 
     return `
@@ -1214,6 +1295,9 @@ function closeForm(){
   document.getElementById('fColorHex').value = '#c9a227';
   document.getElementById('fFinish').value = 'standard';
   toggleSwatchUI('standard');
+  document.getElementById('fCategory').value = '';
+  document.getElementById('fCategoryOther').style.display = 'none';
+  document.getElementById('fCategoryOther').value = '';
   document.getElementById('lookupStatus').textContent = '';
   document.getElementById('lookupStatus').className = 'lookup-status';
 }
@@ -1232,6 +1316,10 @@ function openEdit(id){
   document.getElementById('fColorHex').value = p.color || '#c9a227';
   document.getElementById('fFinish').value = finish;
   toggleSwatchUI(finish);
+  populateCategoryDropdown();
+  document.getElementById('fCategory').value = p.category || '';
+  document.getElementById('fCategoryOther').style.display = 'none';
+  document.getElementById('fCategoryOther').value = '';
   document.getElementById('fNotes').value = p.notes || '';
   document.getElementById('formTitle').textContent = 'Edit paint';
   document.getElementById('saveBtn').textContent = 'Update paint';
@@ -1290,6 +1378,17 @@ document.getElementById('fFinish').addEventListener('change', (e)=>{
   toggleSwatchUI(e.target.value);
 });
 
+document.getElementById('fCategory').addEventListener('change', (e)=>{
+  const otherInput = document.getElementById('fCategoryOther');
+  if(e.target.value === '__other__'){
+    otherInput.style.display = 'block';
+    otherInput.focus();
+  }else{
+    otherInput.style.display = 'none';
+    otherInput.value = '';
+  }
+});
+
 document.getElementById('addForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   try{
@@ -1301,6 +1400,10 @@ document.getElementById('addForm').addEventListener('submit', async (e)=>{
     const finish = document.getElementById('fFinish').value;
     const color = document.getElementById('fColorHex').value.trim() || '#8a8a8a';
     const notes = document.getElementById('fNotes').value.trim();
+    const categorySelect = document.getElementById('fCategory').value;
+    const category = categorySelect === '__other__'
+      ? document.getElementById('fCategoryOther').value.trim()
+      : categorySelect;
 
     if(!name){
       showToast('Name is required');
@@ -1319,11 +1422,11 @@ document.getElementById('addForm').addEventListener('submit', async (e)=>{
         showToast('Could not find that paint to update');
         return;
       }
-      Object.assign(p, {name, brand, line, partNo, status, finish, color, notes});
+      Object.assign(p, {name, brand, line, partNo, status, finish, color, category, notes});
       delete p.metallic;
       showToast('Updated');
     }else{
-      paints.push({id: uid(), name, brand, line, partNo, status, finish, color, notes});
+      paints.push({id: uid(), name, brand, line, partNo, status, finish, color, category, notes});
       showToast('Added to locker');
     }
     await savePaints();
