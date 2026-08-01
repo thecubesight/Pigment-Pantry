@@ -8,6 +8,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root{
+  --ink:#1B1815;
+  --panel:#242019;
+  --panel-raised:#2C2720;
+  --seam:#3A342A;
+  --parchment:#EDE6D6;
+  --muted:#A89C87;
+  --brass:#C9A227;
+  --brass-dim:#8f7420;
+  --teal:#3E6259;
+  --teal-bright:#5C9186;
+  --full:#6B8F4E;
+  --low:#C9A227;
+  --empty:#A83C3C;
+  --wishlist:#3E6259;
+  --focus:#D4B24C;
+  --on-accent:#1A1512;
+}
+
+:root[data-theme="rose"]{
   --ink:#151316;
   --panel:#211D21;
   --panel-raised:#2A242A;
@@ -16,13 +35,55 @@
   --muted:#B08099;
   --brass:#B1508A;
   --brass-dim:#7C3A5F;
-  --teal:#3E6259;
-  --teal-bright:#5C9186;
-  --full:#6B8F4E;
-  --low:#C9A227;
-  --empty:#A83C3C;
-  --wishlist:#3E6259;
   --focus:#D98CB0;
+}
+
+:root[data-theme="offwhite"]{
+  --ink:#F4F0E8;
+  --panel:#FFFFFF;
+  --panel-raised:#FAF7F1;
+  --seam:#DEDACE;
+  --parchment:#2A241E;
+  --muted:#7A7062;
+  --brass:#A8763A;
+  --brass-dim:#7A5527;
+  --focus:#C08F4A;
+}
+
+:root[data-theme="teal"]{
+  --ink:#12211F;
+  --panel:#1A2E2B;
+  --panel-raised:#223A34;
+  --seam:#2E4A43;
+  --parchment:#E8EDE9;
+  --muted:#7FA89B;
+  --brass:#C9A227;
+  --brass-dim:#8f7420;
+  --focus:#D4B24C;
+}
+
+:root[data-theme="terracotta"]{
+  --ink:#211714;
+  --panel:#2E211C;
+  --panel-raised:#372820;
+  --seam:#4A362B;
+  --parchment:#F0E4D8;
+  --muted:#C08A5F;
+  --brass:#C67C3A;
+  --brass-dim:#8F5726;
+  --focus:#D9975A;
+}
+
+:root[data-theme="sage"]{
+  --ink:#191D15;
+  --panel:#232B1D;
+  --panel-raised:#2B3524;
+  --seam:#3A4530;
+  --parchment:#E7ECDD;
+  --muted:#9BAF7A;
+  --brass:#7FA05A;
+  --brass-dim:#5C7A3E;
+  --focus:#9BC26E;
 }
 
 *{box-sizing:border-box;}
@@ -35,7 +96,7 @@ body{
   padding:28px 20px 80px;
 }
 
-::selection{background:var(--brass);color:var(--ink);}
+::selection{background:var(--brass);color:var(--on-accent);}
 
 /* subtle woodgrain-ish texture via layered gradients */
 body{
@@ -56,6 +117,32 @@ header{
   padding-bottom:18px;
   margin-bottom:22px;
   flex-wrap:wrap;
+}
+.theme-picker{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin:-8px 0 18px;
+}
+.theme-picker-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  color:var(--muted);
+  margin-right:2px;
+}
+.theme-swatch{
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  border:1.5px solid var(--seam);
+  padding:0;
+  cursor:pointer;
+  transition:transform .1s ease, border-color .12s ease;
+}
+.theme-swatch:hover{transform:scale(1.12);}
+.theme-swatch.active{
+  border-color:var(--parchment);
+  box-shadow:0 0 0 2px var(--panel), 0 0 0 3px var(--brass);
 }
 h1{
   font-family:'Oswald',sans-serif;
@@ -137,7 +224,7 @@ select#filterBrand,select#filterStatus{min-width:130px;}
   cursor:pointer;
 }
 .group-toggle button + button{border-left:1px solid var(--seam);}
-.group-toggle button.active{background:var(--brass);color:var(--ink);}
+.group-toggle button.active{background:var(--brass);color:var(--on-accent);}
 .group-toggle button:not(.active):hover{color:var(--parchment);}
 
 .family-dot{
@@ -159,7 +246,7 @@ select#filterBrand,select#filterStatus{min-width:130px;}
   transition:transform .08s ease, filter .12s ease;
 }
 .btn:active{transform:translateY(1px);}
-.btn-primary{background:var(--brass);color:var(--ink);}
+.btn-primary{background:var(--brass);color:var(--on-accent);}
 .btn-primary:hover{filter:brightness(1.08);}
 .btn-ghost{background:transparent;border:1px solid var(--seam);color:var(--parchment);}
 .btn-ghost:hover{border-color:var(--brass);}
@@ -295,7 +382,7 @@ input[type=color]:disabled,input:disabled,select:disabled{
 
 .metallic-mark{color:var(--brass);margin-right:4px;}
 .wash-mark{color:var(--teal-bright);margin-right:4px;}
-.technical-mark{color:#a89c87;margin-right:4px;}
+.technical-mark{color:var(--muted);margin-right:4px;}
 .pot-line{
   font-family:'JetBrains Mono',monospace;
   font-size:11px;
@@ -364,7 +451,7 @@ input[type=color]:disabled,input:disabled,select:disabled{
   left:50%;
   transform:translateX(-50%) translateY(20px);
   background:var(--brass);
-  color:var(--ink);
+  color:var(--on-accent);
   padding:10px 18px;
   border-radius:6px;
   font-family:'Oswald',sans-serif;
@@ -405,6 +492,16 @@ input[type=color]:disabled,input:disabled,select:disabled{
       <div class="stat"><b id="statWish">0</b>wishlist</div>
     </div>
   </header>
+
+  <div class="theme-picker" id="themePicker">
+    <span class="theme-picker-label">theme</span>
+    <button class="theme-swatch" data-theme="charcoal" title="Charcoal" style="background:linear-gradient(135deg,#1B1815 50%,#C9A227 50%);"></button>
+    <button class="theme-swatch" data-theme="offwhite" title="Off-white" style="background:linear-gradient(135deg,#F4F0E8 50%,#A8763A 50%);"></button>
+    <button class="theme-swatch" data-theme="rose" title="Ink &amp; Rose" style="background:linear-gradient(135deg,#151316 50%,#B1508A 50%);"></button>
+    <button class="theme-swatch" data-theme="teal" title="Museum teal" style="background:linear-gradient(135deg,#12211F 50%,#C9A227 50%);"></button>
+    <button class="theme-swatch" data-theme="terracotta" title="Terracotta studio" style="background:linear-gradient(135deg,#211714 50%,#C67C3A 50%);"></button>
+    <button class="theme-swatch" data-theme="sage" title="Botanical sage" style="background:linear-gradient(135deg,#191D15 50%,#7FA05A 50%);"></button>
+  </div>
 
   <div class="controls">
     <input id="search" type="text" placeholder="Search by name, brand, or line…" />
@@ -758,6 +855,56 @@ let usingLocalStorage = false;
 
 function hasClaudeStorage(){
   return typeof window.storage !== 'undefined' && window.storage && typeof window.storage.get === 'function';
+}
+
+const THEME_KEY = 'theme';
+
+async function loadThemePref(){
+  try{
+    if(hasClaudeStorage()){
+      const res = await window.storage.get(THEME_KEY, false);
+      return res ? res.value : null;
+    }
+    return localStorage.getItem(THEME_KEY);
+  }catch(e){
+    return null;
+  }
+}
+
+async function saveThemePref(name){
+  try{
+    if(hasClaudeStorage()){
+      await window.storage.set(THEME_KEY, name, false);
+    }else{
+      localStorage.setItem(THEME_KEY, name);
+    }
+  }catch(e){
+    // cosmetic preference only — fine to silently drop
+  }
+}
+
+function applyTheme(name){
+  if(name && name !== 'charcoal'){
+    document.documentElement.setAttribute('data-theme', name);
+  }else{
+    document.documentElement.removeAttribute('data-theme');
+    name = 'charcoal';
+  }
+  document.querySelectorAll('.theme-swatch').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.theme === name);
+  });
+}
+
+async function initTheme(){
+  const saved = await loadThemePref();
+  applyTheme(saved || 'charcoal');
+  document.querySelectorAll('.theme-swatch').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const name = btn.dataset.theme;
+      applyTheme(name);
+      await saveThemePref(name);
+    });
+  });
 }
 
 async function verifyStorageWorks(){
@@ -1273,6 +1420,7 @@ document.getElementById('importFile').addEventListener('change', async (e)=>{
   e.target.value = '';
 });
 
+initTheme();
 loadPaints();
 </script>
 </body>
