@@ -587,8 +587,7 @@ input[type=color]:disabled,input:disabled,select:disabled{
             <option value="Green">Green</option>
             <option value="Teal / Cyan">Teal / Cyan</option>
             <option value="Blue">Blue</option>
-            <option value="Purple">Purple</option>
-            <option value="Pink / Magenta">Pink / Magenta</option>
+            <option value="Purple / Pink">Purple / Pink</option>
             <option value="White / Cream">White / Cream</option>
             <option value="Grey">Grey</option>
             <option value="Black">Black</option>
@@ -825,15 +824,15 @@ function lookupVallejo(raw){
 function uid(){ return 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 
 /* ---------- Color family classification (for "group by color") ---------- */
-const BUILTIN_CATEGORIES = ['Red','Orange','Brown','Yellow','Green','Teal / Cyan','Blue','Purple','Pink / Magenta','White / Cream','Grey','Black','Flesh / Skin','Bone','Wood','Leather'];
-const FAMILY_ORDER = ['Metallic','Wash','Technical','Flesh / Skin','Bone','Wood','Leather','Red','Orange','Brown','Yellow','Green','Teal / Cyan','Blue','Purple','Pink / Magenta','White / Cream','Grey','Black'];
+const BUILTIN_CATEGORIES = ['Red','Orange','Brown','Yellow','Green','Teal / Cyan','Blue','Purple / Pink','White / Cream','Grey','Black','Flesh / Skin','Bone','Wood','Leather'];
+const FAMILY_ORDER = ['Metallic','Wash','Technical','Flesh / Skin','Bone','Wood','Leather','Red','Orange','Brown','Yellow','Green','Teal / Cyan','Blue','Purple / Pink','White / Cream','Grey','Black'];
 const FAMILY_DOT = {
   'Metallic':'linear-gradient(135deg, #efe9d8 0%, #8a8a8a 35%, #c9a227 65%, #4a4030 100%)',
   'Wash':'linear-gradient(135deg, #6b5a3f 0%, #3a2a1c 60%, #1f160f 100%)',
   'Technical':'linear-gradient(135deg, #a89c87 0%, #8a7d68 45%, #5c5346 75%, #3a342a 100%)',
   'Flesh / Skin':'#d9a57c','Bone':'#d8c9a3','Wood':'#8b5a2b','Leather':'#6f4423',
   'Red':'#b0453f','Orange':'#c97a35','Brown':'#7a5230','Yellow':'#c9a227','Green':'#4f7a3a',
-  'Teal / Cyan':'#2f8a82','Blue':'#3a5f9e','Purple':'#6a4a9e','Pink / Magenta':'#b1508a',
+  'Teal / Cyan':'#2f8a82','Blue':'#3a5f9e','Purple / Pink':'#8d4d94',
   'White / Cream':'#e8e2d4','Grey':'#8a8a8a','Black':'#232019'
 };
 
@@ -880,8 +879,7 @@ function colorFamily(hex){
   if(h < 170) return 'Green';
   if(h < 195) return 'Teal / Cyan';
   if(h < 255) return 'Blue';
-  if(h < 290) return 'Purple';
-  if(h < 345) return 'Pink / Magenta';
+  if(h < 345) return 'Purple / Pink';
   return 'Red';
 }
 
